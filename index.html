@@ -735,13 +735,13 @@
         </div>
 
         <nav class="sidebar-nav">
-            <a class="sidebar-nav-item active" data-section="planejamento" onclick="switchSection('planejamento')">
+            <a class="sidebar-nav-item active" data-section="planejamento">
                 <span class="sidebar-nav-text">Planejamento</span>
             </a>
-            <a class="sidebar-nav-item" data-section="consolidacao" onclick="switchSection('consolidacao')">
+            <a class="sidebar-nav-item" data-section="consolidacao">
                 <span class="sidebar-nav-text">Consolidação</span>
             </a>
-            <a class="sidebar-nav-item" data-section="timeline" onclick="switchSection('timeline')">
+            <a class="sidebar-nav-item" data-section="timeline">
                 <span class="sidebar-nav-text">Timeline Operacional</span>
             </a>
         </nav>
@@ -757,7 +757,7 @@
                     <p>Planejamento e Orçamento de Insumos</p>
                 </div>
                 <div class="header-actions">
-                    <button class="btn btn-secondary" onclick="alert('Exportar Excel - Funcionalidade em desenvolvimento')">
+                    <button class="btn btn-secondary" onclick="exportExcel()">
                         Exportar Excel
                     </button>
                     <button class="btn btn-primary" onclick="savePlanning()">
@@ -924,11 +924,11 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
                         <div class="form-field">
                             <label>Data de Plantio</label>
-                            <input type="date" id="timeline-planting-date" style="background: #fff; border: 1px solid #e5e5e7; padding: 10px; border-radius: 8px;">
+                            <input type="date" id="timeline-planting-date" class="form-input" style="background: #fff; border: 1px solid #e5e5e7; padding: 10px;">
                         </div>
                         <div class="form-field">
                             <label>Ciclo da Cultivar (dias)</label>
-                            <select id="timeline-cycle" style="background: #fff; border: 1px solid #e5e5e7; padding: 10px; border-radius: 8px;">
+                            <select id="timeline-cycle" class="form-input" style="background: #fff; border: 1px solid #e5e5e7; padding: 10px;">
                                 <option value="100">Precoce (100-105 dias)</option>
                                 <option value="115" selected>Médio (110-120 dias)</option>
                                 <option value="130">Tardio (125-140 dias)</option>
@@ -936,7 +936,7 @@
                         </div>
                         <div class="form-field">
                             <label>Janela Pós-Emergente</label>
-                            <select id="timeline-pos-window" style="background: #fff; border: 1px solid #e5e5e7; padding: 10px; border-radius: 8px;">
+                            <select id="timeline-pos-window" class="form-input" style="background: #fff; border: 1px solid #e5e5e7; padding: 10px;">
                                 <option value="V2" selected>V2 (Padrão - Mais cedo)</option>
                                 <option value="V3">V3 (Intermediário)</option>
                                 <option value="V4">V4 (Mais tardio)</option>
@@ -944,7 +944,7 @@
                         </div>
                         <div class="form-field">
                             <label>Intervalo entre Fungicidas</label>
-                            <select id="timeline-fung-interval" style="background: #fff; border: 1px solid #e5e5e7; padding: 10px; border-radius: 8px;">
+                            <select id="timeline-fung-interval" class="form-input" style="background: #fff; border: 1px solid #e5e5e7; padding: 10px;">
                                 <option value="12">12 dias (Pressão alta)</option>
                                 <option value="14" selected>14 dias (Padrão)</option>
                                 <option value="16">16 dias (Pressão baixa)</option>
@@ -955,7 +955,7 @@
 
                 <!-- TIMELINE VISUAL -->
                 <div id="timeline-content" style="position: relative; overflow-x: auto;">
-                    <p style="text-align: center; color: #86868b; padding: 40px;">📅 Configure a data de plantio e clique em "Gerar Timeline"</p>
+                    <p style="text-align: center; color: #86868b; padding: 40px;">Configure a data de plantio e clique em "Gerar Timeline"</p>
                 </div>
             </section>
         </div>
@@ -967,7 +967,7 @@
         let inputs = [];
         let productCounter = 0;
 
-        // ===== FENOLOGIA DA SOJA =====
+        // ===== FENOLOGIA CORRIGIDA =====
         const fenologiaSojaBase = [
             { codigo: 'VE', nome: 'Emergência', dapBase: 0, fase: 'vegetative', emoji: '🌱' },
             { codigo: 'VC', nome: 'Cotilédones', dapBase: 5, fase: 'vegetative', emoji: '🌿' },
@@ -995,28 +995,6 @@
             
             sidebar.classList.toggle('open');
             overlay.classList.toggle('active');
-        }
-
-        // Switch sections
-        function switchSection(section) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
-            
-            // Show selected section
-            document.getElementById(`section-${section}`).classList.remove('hidden');
-            
-            // Update active nav item
-            document.querySelectorAll('.sidebar-nav-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.dataset.section === section) {
-                    item.classList.add('active');
-                }
-            });
-
-            // Close mobile sidebar
-            if (window.innerWidth <= 1024) {
-                toggleSidebar();
-            }
         }
 
         // Configurações de insumos
@@ -1721,8 +1699,6 @@
             } else {
                 document.getElementById('nutrient-balance').style.display = 'none';
             }
-
-            gerarConsolidacao();
         }
 
         function updateBalanceDisplay(nutrient, balance, total, target) {
@@ -1855,141 +1831,23 @@
             const sacasHa = grainPrice > 0 ? custoHa / grainPrice : 0;
             
             document.getElementById('consol-total-cost').textContent = `R$ ${custoTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('consol-cost-per-ha').textContent = `R$ ${custoHa.toLocaleString('ptdocument.getElementById('consolidation-summary').style.display = 'block';
-    }
-
-    // ===== TIMELINE FENOLÓGICA =====
-    function adicionarDias(data, dias) {
-        const resultado = new Date(data);
-        resultado.setDate(resultado.getDate() + dias);
-        return resultado;
-    }
-
-    function formatarData(data) {
-        return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-    }
-
-    function gerarTimeline() {
-        const plantingDateInput = document.getElementById('timeline-planting-date');
-        if (!plantingDateInput.value) {
-            alert('Por favor, selecione a data de plantio');
-            return;
+            document.getElementById('consol-cost-per-ha').textContent = `R$ ${custoHa.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('consol-bags-per-ha').textContent = sacasHa.toFixed(2);
+            document.getElementById('consol-unique-products').textContent = Object.keys(consolidados).length;
+            
+            document.getElementById('consolidation-summary').style.display = 'block';
         }
 
-        const plantingDate = new Date(plantingDateInput.value + 'T00:00:00');
-        const cycle = parseInt(document.getElementById('timeline-cycle').value);
-        const posWindow = document.getElementById('timeline-pos-window').value;
-        const fungInterval = parseInt(document.getElementById('timeline-fung-interval').value);
-
-        // Calcular datas dos estádios principais
-        const stages = [
-            { code: 'VE', name: 'Emergência', dap: 0, phase: 'vegetative', emoji: '🌱' },
-            { code: 'V2', name: '2º Trifólio', dap: 14, phase: 'vegetative', emoji: '🍃' },
-            { code: 'R1', name: 'Florescimento', dap: Math.round(cycle * 0.39), phase: 'flowering', emoji: '🌸' },
-            { code: 'R3', name: 'Vagem Inicial', dap: Math.round(cycle * 0.52), phase: 'pod', emoji: '🟢' },
-            { code: 'R5', name: 'Enchimento', dap: Math.round(cycle * 0.66), phase: 'filling', emoji: '🫘' },
-            { code: 'R8', name: 'Maturação', dap: cycle, phase: 'maturation', emoji: '🟤' }
-        ];
-
-        let timelineHTML = `
-            <div class="timeline-container">
-                <div class="timeline-line"></div>
-                <div class="timeline-stages">
-        `;
-
-        stages.forEach(stage => {
-            const stageDate = adicionarDias(plantingDate, stage.dap);
-            timelineHTML += `
-                <div class="stage-marker">
-                    <div class="stage-icon ${stage.phase}">${stage.emoji}</div>
-                    <div class="stage-label">${stage.code}</div>
-                    <div class="stage-date">${formatarData(stageDate)}</div>
-                    <div class="stage-dap">${stage.dap} DAP</div>
-                </div>
-            `;
-        });
-
-        timelineHTML += '</div>';
-
-        // Cards de aplicação
-        const applications = [
-            {
-                name: 'Dessecação Plantio',
-                date: adicionarDias(plantingDate, -7),
-                dap: -7,
-                stage: 'Pré-plantio',
-                type: 'dessecacao'
-            },
-            {
-                name: 'Pós-Emergente',
-                date: adicionarDias(plantingDate, posWindow === 'V2' ? 14 : posWindow === 'V3' ? 18 : 22),
-                dap: posWindow === 'V2' ? 14 : posWindow === 'V3' ? 18 : 22,
-                stage: posWindow,
-                type: 'pos-emergente'
-            }
-        ];
-
-        // Fungicidas
-        const r1Dap = Math.round(cycle * 0.39);
-        for (let i = 0; i < 5; i++) {
-            const fungDap = r1Dap + (i * fungInterval);
-            if (fungDap < cycle - 10) {
-                applications.push({
-                    name: `Fungicida ${i + 1}ª Aplicação`,
-                    date: adicionarDias(plantingDate, fungDap),
-                    dap: fungDap,
-                    stage: `~R${i + 1}`,
-                    type: 'fungicida'
-                });
-            }
+        // ===== TIMELINE FENOLÓGICA CORRIGIDA =====
+        function adicionarDias(data, dias) {
+            const resultado = new Date(data);
+            resultado.setDate(resultado.getDate() + dias);
+            return resultado;
         }
 
-        applications.push({
-            name: 'Colheita',
-            date: adicionarDias(plantingDate, cycle),
-            dap: cycle,
-            stage: 'R8',
-            type: 'colheita'
-        });
-
-        applications.sort((a, b) => a.dap - b.dap);
-
-        timelineHTML += '<div class="application-cards">';
-        applications.forEach(app => {
-            timelineHTML += `
-                <div class="application-card ${app.type}">
-                    <div class="application-card-header">
-                        <div class="application-card-title">${app.name}</div>
-                        <div class="application-card-stage">${app.stage}</div>
-                    </div>
-                    <div class="application-card-body">
-                        <div class="application-card-info">
-                            <div class="application-card-info-label">Data</div>
-                            <div class="application-card-info-value">${formatarData(app.date)}</div>
-                        </div>
-                        <div class="application-card-info">
-                            <div class="application-card-info-label">DAP</div>
-                            <div class="application-card-info-value">${app.dap} dias</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-
-        timelineHTML += '</div></div>';
-
-        document.getElementById('timeline-content').innerHTML = timelineHTML;
-    }
-
-    function savePlanning() {
-        const producer = document.getElementById('producer-name').value;
-        const farm = document.getElementById('farm-name').value;
-        
-        if (!producer || !farm) {
-            alert('Preencha pelo menos o nome do produtor e da fazenda');
-            return;
+        function formatarData(data) {
+            return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
         }
 
-        alert(`✅ Planejamento salvo com sucesso!\n\nProdutor: ${producer}\nFazenda: ${farm}\n\nTotal de insumos: ${inputs.length}`);
-    }
-</script>
+        function estimarEstadio(dap, fenologia) {
+            for (
