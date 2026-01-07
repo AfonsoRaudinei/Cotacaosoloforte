@@ -3965,6 +3965,137 @@
         renderConsolidation();
       }
     };
-    </script>
+
+    
+    // Override exportToExcel para criar 3 abas (Planejamento, Consolidação, Ordem de Aplicação)
+    const originalExportToExcel = exportToExcel;
+    exportToExcel = function() {
+      const wb = XLSX.utils.book_new();
+
+      // ABA 1: PLANEJAMENTO
+      const planData = [['PLANEJAMENTO DE INSUMOS']];
+      planData.push(['']);
+      planData.push(['Produtor:', state.farmData.producer || '-']);
+      planData.push(['Fazenda:', state.farmData.farm || '-']);
+      planData.push(['Area (ha):', state.farmData.area || '-']);
+      planData.push(['Cultura:', state.farmData.culture === 'soja' ? 'Soja' : 'Milho']);
+      planData.push(['']);
+
+      state.insumos.forEach(insumo => {
+        const typeInfo = getInsumoTypeInfo(insumo.type);
+        planData.push([typeInfo.name]);
+        planData.push(['Produto', 'Dose/ha', '\u00c1rea (ha)', 'Total']);
+        
+        insumo.products.forEach(product => {
+          if (!product.name) return;
+          let dose = product.dose || '';
+          let total = '';
+          const area = parseFloat(product.area) || 0;
+          
+          if (insumo.type === 'fertilizer') {
+            const doseNum = parseFloat(dose) || 0;
+            const totalQty = doseNum * area;
+            total = totalQty >= 1000 ? (totalQty/1000).toFixed(2) + ' t' : totalQty.toFixed(0) + ' kg';
+          } else if (insumo.type === 'soy-seed' || insumo.type === 'corn-seed') {
+            const mode = product.mode || 'plantas';
+            const population = parseFloat(product.population) || 0;
+            const germination = parseFloat(product.germination) || 90;
+            const bagSize = parseFloat(product.bagSize) || 5000000;
+            if (population > 0 && area > 0) {
+              const seedsPerHa = mode === 'plantas' ? population / (germination / 100) : population;
+              const haPerBag = bagSize / seedsPerHa;
+              total = (area / haPerBag).toFixed(2) + ' bags';
+            }
+          } else {
+            const doseNum = parseFloat(dose) || 0;
+            const unit = product.unit || 'L';
+            let totalQty = doseNum * area;
+            let finalUnit = unit;
+            if (unit === 'ml') { totalQty = totalQty / 1000; finalUnit = 'L'; }
+            else if (unit === 'g') { totalQty = totalQty / 1000; finalUnit = 'kg'; }
+            total = totalQty.toFixed(2) + ' ' + finalUnit;
+          }
+          
+          planData.push([product.name, dose, area, total]);
+        });
+        planData.push(['']);
+      });
+
+      const wsPlan = XLSX.utils.aoa_to_sheet(planData);
+      wsPlan['!cols'] = [{wch: 25}, {wch: 15}, {wch: 15}, {wch: 15}];
+      XLSX.utils.book_append_sheet(wb, wsPlan, 'Planejamento');
+
+      // ABA 2: CONSOLIDACAO
+      const products = getConsolidationData();
+      const consData = [['CONSOLIDAÇÃO DE INSUMOS']];
+      consData.push(['']);
+      consData.push(['Produtor:', state.farmData.producer || '-']);
+      consData.push(['Fazenda:', state.farmData.farm || '-']);
+      consData.push(['\u00c1rea Total:', state.farmData.area || '-', 'ha']);
+      consData.push(['Cultura:', state.farmData.culture === 'soja' ? 'Soja' : 'Milho']);
+      consData.push(['']);
+      consData.push(['Produto', 'Quantidade', 'Unidade', 'Valor Unit. (R$)', 'Valor Total (R$)']);
+      
+      products.forEach(p => {
+        const qty = p.qty.toFixed(2);
+        const unitPrice = p.unitPrice.toFixed(2);
+        const total = (p.qty * p.unitPrice).toFixed(2);
+        consData.push([p.name, qty, p.unit, unitPrice, total]);
+      });
+
+      const grandTotal = products.reduce((sum, p) => sum + (p.qty * p.unitPrice), 0);
+      const totalArea = parseFloat(state.farmData.area) || 0;
+      const grainPrice = parseFloat(state.farmData.grainPrice) || 0;
+      const sacasPerHa = (totalArea > 0 && grainPrice > 0) ? (grandTotal / totalArea / grainPrice) : 0;
+      
+      consData.push(['']);
+      consData.push(['TOTAL:', '', '', '', grandTotal.toFixed(2)]);
+      consData.push(['Custo/ha em sacas:', sacasPerHa.toFixed(2), 'sc/ha']);
+
+      const wsCons = XLSX.utils.aoa_to_sheet(consData);
+      wsCons['!cols'] = [{wch: 30}, {wch: 15}, {wch: 12}, {wch: 15}, {wch: 18}];
+      XLSX.utils.book_append_sheet(wb, wsCons, 'Consolidação');
+
+      // ABA 3: ORDEM DE APLICAÇÃO
+      const timelineData = [['ORDEM DE APLICAÇÃO']];
+      timelineData.push(['']);
+      timelineData.push(['Data de Plantio:', state.farmData.plantingDate || '-']);
+      timelineData.push(['Cultura:', state.farmData.culture === 'soja' ? 'Soja' : 'Milho']);
+      timelineData.push(['']);
+      timelineData.push(['Período', 'Data', 'Tipo de Insumo', 'Produtos']);
+
+      if (state.farmData.plantingDate) {
+        const culture = state.farmData.culture;
+        const fenologyData = fenology[culture] || fenology.soja;
+        const baseDate = new Date(state.farmData.plantingDate);
+
+        const timelineItems = [];
+        state.insumos.forEach(insumo => {
+          const typeInfo = getInsumoTypeInfo(insumo.type);
+          let dap = 0;
+          switch (insumo.type) {
+            case 'fertilizer': dap = -30; break;
+            case 'defensive': dap = fenologyData[insumo.stage] || 0; break;
+            default: dap = 0;
+          }
+          const appDate = new Date(baseDate);
+          appDate.setDate(appDate.getDate() + dap);
+          const products = insumo.products.map(p => p.name).filter(n => n).join(', ');
+          if (products) {
+            timelineItems.push([dap >= 0 ? 'DAP ' + dap : (Math.abs(dap) + 'd antes'), appDate.toLocaleDateString('pt-BR'), typeInfo.name, products]);
+          }
+        });
+        timelineItems.sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+        timelineItems.forEach(item => timelineData.push(item));
+      }
+
+      const wsTimeline = XLSX.utils.aoa_to_sheet(timelineData);
+      wsTimeline['!cols'] = [{wch: 15}, {wch: 12}, {wch: 20}, {wch: 40}];
+      XLSX.utils.book_append_sheet(wb, wsTimeline, 'Ordem Aplicação');
+
+      // Salvar arquivo
+      const filename = `${state.settings.exportFileName || 'AgriCotacao'}_${state.farmData.farm || 'Fazenda'}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(wb, filename);
+    };</script>
 </body>
 </html>
