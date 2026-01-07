@@ -3923,6 +3923,48 @@
 
         // ==================== INIT ====================
         init();
+        
+    // Auto-atualizar consolidação quando planejamento muda
+    const originalUpdateProductField = updateProductField;
+    updateProductField = function(insumoId, productIndex, field, value) {
+      originalUpdateProductField(insumoId, productIndex, field, value);
+      const tab = document.querySelector('[data-tab="consolidacao"]').parentElement.querySelector('.active');
+      if (document.getElementById('consolidacao').classList.contains('active')) {
+        renderConsolidation();
+      }
+    };
+
+    const originalAddProduct = addProduct;
+    addProduct = function(insumoId) {
+      originalAddProduct(insumoId);
+      if (document.getElementById('consolidacao').classList.contains('active')) {
+        renderConsolidation();
+      }
+    };
+
+    const originalRemoveProduct = removeProduct;
+    removeProduct = function(insumoId, productIndex) {
+      originalRemoveProduct(insumoId, productIndex);
+      if (document.getElementById('consolidacao').classList.contains('active')) {
+        renderConsolidation();
+      }
+    };
+
+    const originalAddInsumo = addInsumo;
+    addInsumo = function(type) {
+      originalAddInsumo(type);
+      if (document.getElementById('consolidacao').classList.contains('active')) {
+        renderConsolidation();
+      }
+    };
+
+    const originalRemoveInsumo = removeInsumo;
+    removeInsumo = function(id) {
+      originalRemoveInsumo(id);
+      if (document.getElementById('consolidacao').classList.contains('active')) {
+        renderConsolidation();
+      }
+    };
     </script>
 </body>
 </html>
