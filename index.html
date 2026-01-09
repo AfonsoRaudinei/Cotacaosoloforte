@@ -1823,7 +1823,6 @@
                 <div class="logo-icon">🌱</div>
                 <div class="logo-text">Agri<span>Cotação</span> Pro</div>
             </div>
-                            <a href="https://afonsoraudinei.github.io/Cotacaosoloforte/" style="position: absolute; right: 100px; top: 50%; transform: translateY(-50%); color: var(--primary); text-decoration: none; font-size: 16px; font-weight: 500; display: flex; align-items: center; gap: 5px;">← Voltar</a>
             <div class="tabs">
                 <button class="tab active" data-tab="planejamento">Planejamento</button>
                 <button class="tab" data-tab="consolidacao">Consolidação</button>
@@ -2586,19 +2585,19 @@
                     <div class="form-group">
                         <label>N desejado (kg/ha)</label>
                         <input type="number" value="${insumo.targetN}" 
-                               onchange="updateInsumoField(${insumo.id}, 'targetN', sanitizeNumber(this.value))"
+                               oninput="updateInsumoField(${insumo.id}, 'targetN', sanitizeNumber(this.value))"
                                placeholder="0">
                     </div>
                     <div class="form-group">
                         <label>P₂O₅ desejado (kg/ha)</label>
                         <input type="number" value="${insumo.targetP}" 
-                               onchange="updateInsumoField(${insumo.id}, 'targetP', sanitizeNumber(this.value))"
+                               oninput="updateInsumoField(${insumo.id}, 'targetP', sanitizeNumber(this.value))"
                                placeholder="0">
                     </div>
                     <div class="form-group">
                         <label>K₂O desejado (kg/ha)</label>
                         <input type="number" value="${insumo.targetK}" 
-                               onchange="updateInsumoField(${insumo.id}, 'targetK', sanitizeNumber(this.value))"
+                               oninput="updateInsumoField(${insumo.id}, 'targetK', sanitizeNumber(this.value))"
                                placeholder="0">
                     </div>
                 </div>
@@ -2669,7 +2668,7 @@
                         <div class="form-group">
                             <label>Área ${renderAreaWarningIcon(productArea, totalArea)}</label>
                             <input type="number" value="${product.area}" 
-                                   onchange="updateProductField(${insumoId}, ${index}, 'area', sanitizeNumber(this.value, this))"
+                                   oninput="updateProductField(${insumoId}, ${index}, 'area', sanitizeNumber(this.value, this))"
                                    placeholder="${totalArea || '0'}"
                                    class="${areaWarningClass}"
                                    style="width: 65px;">
@@ -2685,19 +2684,19 @@
                             <div class="form-group">
                                 <label>N%</label>
                                 <input type="number" value="${product.n}" 
-                                       onchange="updateProductField(${insumoId}, ${index}, 'n', sanitizeNumber(this.value, this))"
+                                       oninput="updateProductField(${insumoId}, ${index}, 'n', sanitizeNumber(this.value, this))"
                                        placeholder="0" style="width: 45px;">
                             </div>
                             <div class="form-group">
                                 <label>P%</label>
                                 <input type="number" value="${product.p}" 
-                                       onchange="updateProductField(${insumoId}, ${index}, 'p', sanitizeNumber(this.value, this))"
+                                       oninput="updateProductField(${insumoId}, ${index}, 'p', sanitizeNumber(this.value, this))"
                                        placeholder="0" style="width: 45px;">
                             </div>
                             <div class="form-group">
                                 <label>K%</label>
                                 <input type="number" value="${product.k}" 
-                                       onchange="updateProductField(${insumoId}, ${index}, 'k', sanitizeNumber(this.value, this))"
+                                       oninput="updateProductField(${insumoId}, ${index}, 'k', sanitizeNumber(this.value, this))"
                                        placeholder="0" style="width: 45px;">
                             </div>
                         ` : `
@@ -2742,10 +2741,8 @@
         }
 
         function formatToneladas(kg) {
-            if (kg >= 1000) {
-                return (kg / 1000).toFixed(2) + ' t';
-            }
-            return kg.toFixed(0) + ' kg';
+            // Sempre converter para toneladas
+            return (kg / 1000).toFixed(3) + ' t';
         }
 
         function renderSeedBody(insumo) {
@@ -2786,13 +2783,13 @@
                                     <div class="seed-field">
                                         <label>Área ${renderAreaWarningIcon(area, totalArea)}</label>
                                         <input type="number" value="${product.area}" 
-                                               onchange="updateProductField(${insumo.id}, ${index}, 'area', sanitizeNumber(this.value, this))"
+                                               oninput="updateProductField(${insumo.id}, ${index}, 'area', sanitizeNumber(this.value, this))"
                                                placeholder="${totalArea || '0'}"
                                                class="${areaWarningClass}">
                                     </div>
                                     <div class="seed-field">
                                         <label>Modo</label>
-                                        <select onchange="updateProductField(${insumo.id}, ${index}, 'mode', this.value)">
+                                        <select oninput="updateProductField(${insumo.id}, ${index}, 'mode', this.value)">
                                             <option value="plantas" ${mode === 'plantas' ? 'selected' : ''}>Plantas</option>
                                             <option value="sementes" ${mode === 'sementes' ? 'selected' : ''}>Sementes</option>
                                         </select>
@@ -2800,20 +2797,20 @@
                                     <div class="seed-field">
                                         <label>/ha</label>
                                         <input type="number" value="${product.population}" 
-                                               onchange="updateProductField(${insumo.id}, ${index}, 'population', sanitizeNumber(this.value, this))"
+                                               oninput="updateProductField(${insumo.id}, ${index}, 'population', sanitizeNumber(this.value, this))"
                                                placeholder="${isSoy ? '250000' : '65000'}">
                                     </div>
                                     ${mode === 'plantas' ? `
                                         <div class="seed-field">
                                             <label>Germ%</label>
                                             <input type="number" value="${product.germination}" 
-                                                   onchange="updateProductField(${insumo.id}, ${index}, 'germination', sanitizeNumber(this.value, this))"
+                                                   oninput="updateProductField(${insumo.id}, ${index}, 'germination', sanitizeNumber(this.value, this))"
                                                    placeholder="90" style="width: 50px;">
                                         </div>
                                     ` : ''}
                                     <div class="seed-field">
                                         <label>Emb.</label>
-                                        <select onchange="updateProductField(${insumo.id}, ${index}, 'bagSize', this.value)">
+                                        <select oninput="updateProductField(${insumo.id}, ${index}, 'bagSize', this.value)">
                                             ${isSoy ? `
                                                 <option value="5000000" ${product.bagSize === '5000000' ? 'selected' : ''}>5M</option>
                                                 <option value="2500000" ${product.bagSize === '2500000' ? 'selected' : ''}>2.5M</option>
@@ -2915,7 +2912,7 @@
                                     <div class="field-group">
                                         <label>Área ${renderAreaWarningIcon(area, totalArea)}</label>
                                         <input type="number" value="${product.area}" 
-                                               onchange="updateProductField(${insumo.id}, ${index}, 'area', sanitizeNumber(this.value, this))"
+                                               oninput="updateProductField(${insumo.id}, ${index}, 'area', sanitizeNumber(this.value, this))"
                                                placeholder="${totalArea || '0'}"
                                                class="${areaWarningClass}"
                                                style="width: 70px;">
@@ -2923,12 +2920,12 @@
                                     <div class="field-group">
                                         <label>Dose/ha</label>
                                         <input type="number" value="${product.dose}" 
-                                               onchange="updateProductField(${insumo.id}, ${index}, 'dose', sanitizeNumber(this.value, this))"
+                                               oninput="updateProductField(${insumo.id}, ${index}, 'dose', sanitizeNumber(this.value, this))"
                                                placeholder="0" style="width: 60px;">
                                     </div>
                                     <div class="field-group">
                                         <label>Unid.</label>
-                                        <select onchange="updateProductField(${insumo.id}, ${index}, 'unit', this.value)" style="width: 55px;">
+                                        <select oninput="updateProductField(${insumo.id}, ${index}, 'unit', this.value)" style="width: 55px;">
                                             <option value="L" ${unit === 'L' ? 'selected' : ''}>L</option>
                                             <option value="ml" ${unit === 'ml' ? 'selected' : ''}>ml</option>
                                             <option value="kg" ${unit === 'kg' ? 'selected' : ''}>kg</option>
@@ -2985,7 +2982,7 @@
                                     <div class="field-group">
                                         <label>Área ${renderAreaWarningIcon(area, totalArea)}</label>
                                         <input type="number" value="${product.area}" 
-                                               onchange="updateProductField(${insumo.id}, ${index}, 'area', sanitizeNumber(this.value, this))"
+                                               oninput="updateProductField(${insumo.id}, ${index}, 'area', sanitizeNumber(this.value, this))"
                                                placeholder="${totalArea || '0'}"
                                                class="${areaWarningClass}"
                                                style="width: 70px;">
@@ -2993,12 +2990,12 @@
                                     <div class="field-group">
                                         <label>Dose/ha</label>
                                         <input type="number" value="${product.dose}" 
-                                               onchange="updateProductField(${insumo.id}, ${index}, 'dose', sanitizeNumber(this.value, this))"
+                                               oninput="updateProductField(${insumo.id}, ${index}, 'dose', sanitizeNumber(this.value, this))"
                                                placeholder="0" step="0.01" style="width: 60px;">
                                     </div>
                                     <div class="field-group">
                                         <label>Unid.</label>
-                                        <select onchange="updateProductField(${insumo.id}, ${index}, 'unit', this.value)" style="width: 55px;">
+                                        <select oninput="updateProductField(${insumo.id}, ${index}, 'unit', this.value)" style="width: 55px;">
                                             <option value="L" ${unit === 'L' ? 'selected' : ''}>L</option>
                                             <option value="ml" ${unit === 'ml' ? 'selected' : ''}>ml</option>
                                         </select>
@@ -3048,8 +3045,8 @@
 
                     if (insumo.type === 'fertilizer') {
                         const dose = parseFloat(product.dose) || 0;
-                        totalQty = dose * productArea;
-                        unit = 'kg';
+                        totalQty = (dose * productArea) / 1000; // Sempre em toneladas
+                        unit = 't';
                     } else if (insumo.type === 'soy-seed' || insumo.type === 'corn-seed') {
                         // Calculate bags for this cultivar
                         const mode = product.mode || 'plantas';
@@ -3336,9 +3333,8 @@
                     if (insumo.type === 'fertilizer') {
                         const dose = parseFloat(product.dose) || 0;
                         dosePerHa = dose > 0 ? `${dose} kg/ha` : '-';
-                        totalQty = dose * productArea;
-                        unit = totalQty >= 1000 ? 't' : 'kg';
-                        if (unit === 't') totalQty = totalQty / 1000;
+                        totalQty = (dose * productArea) / 1000; // Sempre em toneladas
+                        unit = 't';
                     } else if (insumo.type === 'soy-seed' || insumo.type === 'corn-seed') {
                         const mode = product.mode || 'plantas';
                         const population = parseFloat(product.population) || 0;
@@ -3618,8 +3614,8 @@
 
                     if (insumo.type === 'fertilizer') {
                         const dose = parseFloat(product.dose) || 0;
-                        totalQty = dose * productArea;
-                        unit = 'kg';
+                        totalQty = (dose * productArea) / 1000; // Sempre em toneladas
+                        unit = 't';
                     } else if (insumo.type === 'soy-seed' || insumo.type === 'corn-seed') {
                         const mode = product.mode || 'plantas';
                         const population = parseFloat(product.population) || 0;
@@ -3673,67 +3669,225 @@
             const products = getConsolidationData();
             const totalArea = parseFloat(state.farmData.area) || 0;
             const grainPrice = parseFloat(state.farmData.grainPrice) || 0;
+            const grandTotal = products.reduce((sum, p) => sum + p.total, 0);
+            const sacasPerHa = (totalArea > 0 && grainPrice > 0) ? (grandTotal / totalArea / grainPrice) : 0;
+            const culture = state.farmData.culture;
+            const fenologyData = fenology[culture] || fenology.soja;
+            const baseDate = state.farmData.plantingDate ? new Date(state.farmData.plantingDate) : null;
 
-            // Header data
-            const headerData = [
-                ['AGRICOTAÇÃO PRO - CONSOLIDAÇÃO DE INSUMOS'],
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+
+            // ==================== ABA 1: PLANEJAMENTO ====================
+            const planData = [
+                ['AGRICOTAÇÃO PRO - PLANEJAMENTO'],
+                ['Link: https://afonsoraudinei.github.io/Cotacaosoloforte/'],
+                [],
+                ['DADOS DA PROPRIEDADE'],
+                ['Produtor:', state.farmData.producer || '-'],
+                ['Fazenda:', state.farmData.farm || '-'],
+                ['Área Total:', totalArea + ' ha'],
+                ['Cultura:', culture === 'soja' ? 'Soja' : 'Milho'],
+                ['Data de Plantio:', state.farmData.plantingDate || '-'],
+                []
+            ];
+
+            // Add each insumo
+            state.insumos.forEach(insumo => {
+                const typeInfo = getInsumoTypeInfo(insumo.type);
+                planData.push([typeInfo.name.toUpperCase()]);
+                
+                if (insumo.type === 'fertilizer') {
+                    planData.push(['Meta N:', insumo.targetN || '-', 'Meta P:', insumo.targetP || '-', 'Meta K:', insumo.targetK || '-']);
+                    planData.push(['Produto', 'Área (ha)', 'Dose (kg/ha)', 'N%', 'P%', 'K%', 'Total (t)']);
+                    insumo.products.forEach(p => {
+                        const name = p.name || (p.preset === 'kcl' ? 'KCl' : '-');
+                        const area = parseFloat(p.area) || 0;
+                        const dose = parseFloat(p.dose) || 0;
+                        const total = (dose * area) / 1000;
+                        planData.push([name, area, dose, p.n || '-', p.p || '-', p.k || '-', total.toFixed(3)]);
+                    });
+                } else if (insumo.type === 'soy-seed' || insumo.type === 'corn-seed') {
+                    planData.push(['Cultivar', 'Área (ha)', 'Modo', 'Pop./ha', 'Germ%', 'Embalagem', 'Total']);
+                    insumo.products.forEach(p => {
+                        const area = parseFloat(p.area) || 0;
+                        const pop = parseFloat(p.population) || 0;
+                        const germ = parseFloat(p.germination) || 90;
+                        const bagSize = parseFloat(p.bagSize) || 5000000;
+                        let total = 0;
+                        if (pop > 0 && area > 0) {
+                            const seedsPerHa = p.mode === 'plantas' ? pop / (germ / 100) : pop;
+                            total = area / (bagSize / seedsPerHa);
+                        }
+                        planData.push([p.name || '-', area, p.mode || 'plantas', pop, germ, bagSize, total.toFixed(2)]);
+                    });
+                } else if (insumo.type === 'defensive') {
+                    planData.push(['Estágio:', insumo.stage || '-']);
+                    planData.push(['Produto', 'Área (ha)', 'Dose/ha', 'Unidade', 'Total']);
+                    insumo.products.forEach(p => {
+                        const area = parseFloat(p.area) || 0;
+                        const dose = parseFloat(p.dose) || 0;
+                        let total = dose * area;
+                        let unit = p.unit || 'L';
+                        if (unit === 'g') { total /= 1000; unit = 'kg'; }
+                        if (unit === 'ml') { total /= 1000; unit = 'L'; }
+                        planData.push([p.name || '-', area, dose, p.unit || 'L', total.toFixed(2) + ' ' + unit]);
+                    });
+                } else {
+                    planData.push(['Produto', 'Área (ha)', 'Dose/ha', 'Unidade', 'Total']);
+                    insumo.products.forEach(p => {
+                        const area = parseFloat(p.area) || 0;
+                        const dose = parseFloat(p.dose) || 0;
+                        let total = dose * area;
+                        let unit = p.unit || 'L';
+                        if (unit === 'ml') { total /= 1000; unit = 'L'; }
+                        planData.push([p.name || '-', area, dose, p.unit || 'L', total.toFixed(2) + ' ' + unit]);
+                    });
+                }
+                planData.push([]);
+            });
+
+            const wsPlan = XLSX.utils.aoa_to_sheet(planData);
+            wsPlan['!cols'] = [{ wch: 25 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 12 }];
+            XLSX.utils.book_append_sheet(wb, wsPlan, 'Planejamento');
+
+            // ==================== ABA 2: CONSOLIDAÇÃO ====================
+            const consData = [
+                ['AGRICOTAÇÃO PRO - CONSOLIDAÇÃO'],
+                ['Link: https://afonsoraudinei.github.io/Cotacaosoloforte/'],
                 [],
                 ['Produtor:', state.farmData.producer || '-'],
                 ['Fazenda:', state.farmData.farm || '-'],
                 ['Área Total:', totalArea + ' ha'],
-                ['Cultura:', state.farmData.culture === 'soja' ? 'Soja' : 'Milho'],
+                ['Cultura:', culture === 'soja' ? 'Soja' : 'Milho'],
                 ['Valor do Grão:', 'R$ ' + (grainPrice || 0).toFixed(2) + '/saca'],
                 ['Vencimento:', state.farmData.dueDate || '-'],
+                [],
+                ['Produto', 'Quantidade', 'Unidade', 'Valor Unit. (R$)', 'Valor Total (R$)']
+            ];
+
+            // Group by category
+            const categories = { fertilizer: [], seed: [], defensive: [], inoculant: [] };
+            products.forEach(p => {
+                if (categories[p.category]) categories[p.category].push(p);
+            });
+
+            Object.entries(categories).forEach(([cat, prods]) => {
+                if (prods.length === 0) return;
+                const catNames = { fertilizer: 'FERTILIZANTES', seed: 'SEMENTES', defensive: 'DEFENSIVOS', inoculant: 'INOCULANTES/TRATAMENTO' };
+                consData.push([catNames[cat] || cat.toUpperCase()]);
+                prods.forEach(p => {
+                    consData.push([p.name, p.qty.toFixed(3), p.unit, p.unitPrice.toFixed(2), p.total.toFixed(2)]);
+                });
+            });
+
+            consData.push([]);
+            consData.push(['', '', '', 'TOTAL:', 'R$ ' + grandTotal.toFixed(2)]);
+            consData.push(['', '', '', 'Custo/ha em sacas:', sacasPerHa.toFixed(2) + ' sc/ha']);
+
+            const wsCons = XLSX.utils.aoa_to_sheet(consData);
+            wsCons['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 10 }, { wch: 15 }, { wch: 18 }];
+            XLSX.utils.book_append_sheet(wb, wsCons, 'Consolidação');
+
+            // ==================== ABA 3: ORDEM DE APLICAÇÃO ====================
+            const ordemData = [
+                ['AGRICOTAÇÃO PRO - ORDEM DE APLICAÇÃO'],
+                ['Link: https://afonsoraudinei.github.io/Cotacaosoloforte/'],
+                [],
+                ['Data de Plantio:', state.farmData.plantingDate || '-'],
+                ['Cultura:', culture === 'soja' ? 'Soja' : 'Milho'],
                 []
             ];
 
-            // Products table
-            const tableHeader = ['Produto', 'Quantidade', 'Unidade', 'Valor Unit. (R$)', 'Valor Total (R$)'];
-            const tableData = products.map(p => [
-                p.name,
-                p.qty.toFixed(2),
-                p.unit,
-                p.unitPrice.toFixed(2),
-                p.total.toFixed(2)
-            ]);
+            // Generate timeline items
+            const timelineItems = [];
+            state.insumos.forEach(insumo => {
+                const typeInfo = getInsumoTypeInfo(insumo.type);
+                let dap = 0;
 
-            // Calculate grand total
-            const grandTotal = products.reduce((sum, p) => sum + p.total, 0);
-            const sacasPerHa = (totalArea > 0 && grainPrice > 0) ? (grandTotal / totalArea / grainPrice) : 0;
+                switch (insumo.type) {
+                    case 'fertilizer': dap = -30; break;
+                    case 'soy-seed':
+                    case 'corn-seed':
+                    case 'inoculant':
+                    case 'treatment': dap = 0; break;
+                    case 'defensive': dap = fenologyData[insumo.stage] || 0; break;
+                }
 
-            // Footer
-            const footerData = [
-                [],
-                ['', '', '', 'TOTAL:', 'R$ ' + grandTotal.toFixed(2)],
-                ['', '', '', 'Custo/ha em sacas:', sacasPerHa.toFixed(2) + ' sc/ha']
-            ];
+                const appDate = baseDate ? new Date(baseDate) : null;
+                if (appDate) appDate.setDate(appDate.getDate() + dap);
 
-            // Combine all data
-            const wsData = [
-                ...headerData,
-                tableHeader,
-                ...tableData,
-                ...footerData
-            ];
+                insumo.products.forEach(product => {
+                    const name = product.name || (product.preset === 'kcl' ? 'KCl' : '');
+                    if (!name) return;
 
-            // Create workbook
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
+                    const productArea = parseFloat(product.area) || 0;
+                    let dosePerHa = '-';
+                    let totalQty = 0;
+                    let unit = '';
 
-            // Set column widths
-            ws['!cols'] = [
-                { wch: 30 },
-                { wch: 15 },
-                { wch: 10 },
-                { wch: 15 },
-                { wch: 18 }
-            ];
+                    if (insumo.type === 'fertilizer') {
+                        const dose = parseFloat(product.dose) || 0;
+                        dosePerHa = dose + ' kg/ha';
+                        totalQty = (dose * productArea) / 1000;
+                        unit = 't';
+                    } else if (insumo.type === 'soy-seed' || insumo.type === 'corn-seed') {
+                        const pop = parseFloat(product.population) || 0;
+                        const germ = parseFloat(product.germination) || 90;
+                        const bagSize = parseFloat(product.bagSize) || 5000000;
+                        dosePerHa = formatNumber(pop) + (product.mode === 'plantas' ? ' pl/ha' : ' sem/ha');
+                        if (pop > 0 && productArea > 0) {
+                            const seedsPerHa = product.mode === 'plantas' ? pop / (germ / 100) : pop;
+                            totalQty = productArea / (bagSize / seedsPerHa);
+                        }
+                        unit = insumo.type === 'soy-seed' ? 'bags' : 'sacas';
+                    } else {
+                        const dose = parseFloat(product.dose) || 0;
+                        const prodUnit = product.unit || 'L';
+                        dosePerHa = dose + ' ' + prodUnit + '/ha';
+                        totalQty = dose * productArea;
+                        if (prodUnit === 'g') { totalQty /= 1000; unit = 'kg'; }
+                        else if (prodUnit === 'ml') { totalQty /= 1000; unit = 'L'; }
+                        else unit = prodUnit;
+                    }
 
-            XLSX.utils.book_append_sheet(wb, ws, 'Consolidação');
+                    timelineItems.push({
+                        dap, 
+                        date: appDate ? appDate.toLocaleDateString('pt-BR') : '-',
+                        type: typeInfo.name,
+                        stage: insumo.stage || '',
+                        name, 
+                        dosePerHa, 
+                        area: productArea,
+                        total: totalQty,
+                        unit
+                    });
+                });
+            });
 
-            // Generate filename
+            timelineItems.sort((a, b) => a.dap - b.dap);
+
+            ordemData.push(['Período', 'Data', 'Tipo', 'Estágio', 'Produto', 'Dose/ha', 'Área (ha)', 'Total']);
+            timelineItems.forEach(item => {
+                const periodo = item.dap >= 0 ? 'DAP ' + item.dap : Math.abs(item.dap) + 'd antes';
+                ordemData.push([
+                    periodo,
+                    item.date,
+                    item.type,
+                    item.stage,
+                    item.name,
+                    item.dosePerHa,
+                    item.area,
+                    item.total.toFixed(3) + ' ' + item.unit
+                ]);
+            });
+
+            const wsOrdem = XLSX.utils.aoa_to_sheet(ordemData);
+            wsOrdem['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 10 }, { wch: 25 }, { wch: 15 }, { wch: 10 }, { wch: 15 }];
+            XLSX.utils.book_append_sheet(wb, wsOrdem, 'Ordem Aplicação');
+
+            // Generate filename and save
             const filename = `${state.settings.exportFileName || 'AgriCotacao'}_${state.farmData.farm || 'Fazenda'}_${new Date().toISOString().split('T')[0]}.xlsx`;
-            
             XLSX.writeFile(wb, filename);
         }
 
@@ -3924,179 +4078,6 @@
 
         // ==================== INIT ====================
         init();
-        
-    // Auto-atualizar consolidação quando planejamento muda
-    const originalUpdateProductField = updateProductField;
-    updateProductField = function(insumoId, productIndex, field, value) {
-      originalUpdateProductField(insumoId, productIndex, field, value);
-      const tab = document.querySelector('[data-tab="consolidacao"]').parentElement.querySelector('.active');
-      if (document.getElementById('consolidacao').classList.contains('active')) {
-        renderConsolidation();
-      }
-    };
-
-    const originalAddProduct = addProduct;
-    addProduct = function(insumoId) {
-      originalAddProduct(insumoId);
-      if (document.getElementById('consolidacao').classList.contains('active')) {
-        renderConsolidation();
-      }
-    };
-
-    const originalRemoveProduct = removeProduct;
-    removeProduct = function(insumoId, productIndex) {
-      originalRemoveProduct(insumoId, productIndex);
-      if (document.getElementById('consolidacao').classList.contains('active')) {
-        renderConsolidation();
-      }
-    };
-
-    const originalAddInsumo = addInsumo;
-    addInsumo = function(type) {
-      originalAddInsumo(type);
-      if (document.getElementById('consolidacao').classList.contains('active')) {
-        renderConsolidation();
-      }
-    };
-
-    const originalRemoveInsumo = removeInsumo;
-    removeInsumo = function(id) {
-      originalRemoveInsumo(id);
-      if (document.getElementById('consolidacao').classList.contains('active')) {
-        renderConsolidation();
-      }
-    };
-
-    
-    // Override exportToExcel para criar 3 abas (Planejamento, Consolidação, Ordem de Aplicação)
-    const originalExportToExcel = exportToExcel;
-    exportToExcel = function() {
-      const wb = XLSX.utils.book_new();
-
-      // ABA 1: PLANEJAMENTO
-      const planData = [['PLANEJAMENTO DE INSUMOS']];
-      planData.push(['']);
-      planData.push(['Produtor:', state.farmData.producer || '-']);
-      planData.push(['Fazenda:', state.farmData.farm || '-']);
-      planData.push(['Area (ha):', state.farmData.area || '-']);
-      planData.push(['Cultura:', state.farmData.culture === 'soja' ? 'Soja' : 'Milho']);
-      planData.push(['']);
-
-      state.insumos.forEach(insumo => {
-        const typeInfo = getInsumoTypeInfo(insumo.type);
-        planData.push([typeInfo.name]);
-        planData.push(['Produto', 'Dose/ha', '\u00c1rea (ha)', 'Total']);
-        
-        insumo.products.forEach(product => {
-          if (!product.name) return;
-          let dose = product.dose || '';
-          let total = '';
-          const area = parseFloat(product.area) || 0;
-          
-          if (insumo.type === 'fertilizer') {
-            const doseNum = parseFloat(dose) || 0;
-            const totalQty = doseNum * area;
-            total = totalQty >= 1000 ? (totalQty/1000).toFixed(2) + ' t' : totalQty.toFixed(0) + ' kg';
-          } else if (insumo.type === 'soy-seed' || insumo.type === 'corn-seed') {
-            const mode = product.mode || 'plantas';
-            const population = parseFloat(product.population) || 0;
-            const germination = parseFloat(product.germination) || 90;
-            const bagSize = parseFloat(product.bagSize) || 5000000;
-            if (population > 0 && area > 0) {
-              const seedsPerHa = mode === 'plantas' ? population / (germination / 100) : population;
-              const haPerBag = bagSize / seedsPerHa;
-              total = (area / haPerBag).toFixed(2) + ' bags';
-            }
-          } else {
-            const doseNum = parseFloat(dose) || 0;
-            const unit = product.unit || 'L';
-            let totalQty = doseNum * area;
-            let finalUnit = unit;
-            if (unit === 'ml') { totalQty = totalQty / 1000; finalUnit = 'L'; }
-            else if (unit === 'g') { totalQty = totalQty / 1000; finalUnit = 'kg'; }
-            total = totalQty.toFixed(2) + ' ' + finalUnit;
-          }
-          
-          planData.push([product.name, dose, area, total]);
-        });
-        planData.push(['']);
-      });
-
-      const wsPlan = XLSX.utils.aoa_to_sheet(planData);
-      wsPlan['!cols'] = [{wch: 25}, {wch: 15}, {wch: 15}, {wch: 15}];
-      XLSX.utils.book_append_sheet(wb, wsPlan, 'Planejamento');
-
-      // ABA 2: CONSOLIDACAO
-      const products = getConsolidationData();
-      const consData = [['CONSOLIDAÇÃO DE INSUMOS']];
-      consData.push(['']);
-      consData.push(['Produtor:', state.farmData.producer || '-']);
-      consData.push(['Fazenda:', state.farmData.farm || '-']);
-      consData.push(['\u00c1rea Total:', state.farmData.area || '-', 'ha']);
-      consData.push(['Cultura:', state.farmData.culture === 'soja' ? 'Soja' : 'Milho']);
-      consData.push(['']);
-      consData.push(['Produto', 'Quantidade', 'Unidade', 'Valor Unit. (R$)', 'Valor Total (R$)']);
-      
-      products.forEach(p => {
-        const qty = p.qty.toFixed(2);
-        const unitPrice = p.unitPrice.toFixed(2);
-        const total = (p.qty * p.unitPrice).toFixed(2);
-        consData.push([p.name, qty, p.unit, unitPrice, total]);
-      });
-
-      const grandTotal = products.reduce((sum, p) => sum + (p.qty * p.unitPrice), 0);
-      const totalArea = parseFloat(state.farmData.area) || 0;
-      const grainPrice = parseFloat(state.farmData.grainPrice) || 0;
-      const sacasPerHa = (totalArea > 0 && grainPrice > 0) ? (grandTotal / totalArea / grainPrice) : 0;
-      
-      consData.push(['']);
-      consData.push(['TOTAL:', '', '', '', grandTotal.toFixed(2)]);
-      consData.push(['Custo/ha em sacas:', sacasPerHa.toFixed(2), 'sc/ha']);
-
-      const wsCons = XLSX.utils.aoa_to_sheet(consData);
-      wsCons['!cols'] = [{wch: 30}, {wch: 15}, {wch: 12}, {wch: 15}, {wch: 18}];
-      XLSX.utils.book_append_sheet(wb, wsCons, 'Consolidação');
-
-      // ABA 3: ORDEM DE APLICAÇÃO
-      const timelineData = [['ORDEM DE APLICAÇÃO']];
-      timelineData.push(['']);
-      timelineData.push(['Data de Plantio:', state.farmData.plantingDate || '-']);
-      timelineData.push(['Cultura:', state.farmData.culture === 'soja' ? 'Soja' : 'Milho']);
-      timelineData.push(['']);
-      timelineData.push(['Período', 'Data', 'Tipo de Insumo', 'Produtos']);
-
-      if (state.farmData.plantingDate) {
-        const culture = state.farmData.culture;
-        const fenologyData = fenology[culture] || fenology.soja;
-        const baseDate = new Date(state.farmData.plantingDate);
-
-        const timelineItems = [];
-        state.insumos.forEach(insumo => {
-          const typeInfo = getInsumoTypeInfo(insumo.type);
-          let dap = 0;
-          switch (insumo.type) {
-            case 'fertilizer': dap = -30; break;
-            case 'defensive': dap = fenologyData[insumo.stage] || 0; break;
-            default: dap = 0;
-          }
-          const appDate = new Date(baseDate);
-          appDate.setDate(appDate.getDate() + dap);
-          const products = insumo.products.map(p => p.name).filter(n => n).join(', ');
-          if (products) {
-            timelineItems.push([dap >= 0 ? 'DAP ' + dap : (Math.abs(dap) + 'd antes'), appDate.toLocaleDateString('pt-BR'), typeInfo.name, products]);
-          }
-        });
-        timelineItems.sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
-        timelineItems.forEach(item => timelineData.push(item));
-      }
-
-      const wsTimeline = XLSX.utils.aoa_to_sheet(timelineData);
-      wsTimeline['!cols'] = [{wch: 15}, {wch: 12}, {wch: 20}, {wch: 40}];
-      XLSX.utils.book_append_sheet(wb, wsTimeline, 'Ordem Aplicação');
-
-      // Salvar arquivo
-      const filename = `${state.settings.exportFileName || 'AgriCotacao'}_${state.farmData.farm || 'Fazenda'}_${new Date().toISOString().split('T')[0]}.xlsx`;
-      XLSX.writeFile(wb, filename);
-    };</script>
+    </script>
 </body>
 </html>
