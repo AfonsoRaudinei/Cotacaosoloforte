@@ -60,6 +60,18 @@
                             <option value="milho">Milho</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label>Data de Plantio</label>
+                        <input type="date" id="planting-date">
+                    </div>
+                    <div class="form-group">
+                        <label>Data de Vencimento</label>
+                        <input type="date" id="due-date">
+                    </div>
+                    <div class="form-group">
+                        <label>Valor do Grão (R$/saca)</label>
+                        <input type="number" id="grain-price" placeholder="0.00" step="0.01" min="0">
+                    </div>
                 </div>
             </div>
 
@@ -126,7 +138,6 @@
     <div class="fab-container">
         <button class="fab fab-excel" id="export-excel-btn" title="Exportar Excel">📊</button>
         <button class="fab fab-pdf" id="export-pdf-btn" title="Exportar PDF">📄</button>
-        <button class="fab fab-print" id="print-btn" title="Imprimir">🖨️</button>
     </div>
 
     <!-- Sidecar -->
