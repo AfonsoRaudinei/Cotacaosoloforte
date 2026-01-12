@@ -6,12 +6,13 @@ let state = {
         area: '',
         culture: 'soja',
         plantingDate: '',
-        grainPrice: '',
-        dueDate: ''
+        dueDate: '',
+        grainPrice: ''
     },
     insumos: [],
     consolidation: {
-        unitPrices: {}
+        unitPrices: {},
+        quantities: {}
     },
     settings: {
         defaultGrainPrice: '',
@@ -130,6 +131,15 @@ function bindEvents() {
         state.farmData.plantingDate = e.target.value;
         saveState();
     });
+    document.getElementById('due-date').addEventListener('change', (e) => {
+        state.farmData.dueDate = e.target.value;
+        saveState();
+    });
+    document.getElementById('grain-price').addEventListener('input', (e) => {
+        state.farmData.grainPrice = sanitizeNumber(e.target.value);
+        e.target.value = state.farmData.grainPrice;
+        saveState();
+    });
 
     addInsumoBtn.addEventListener('click', () => {
         addInsumoDropdown.classList.toggle('show');
@@ -176,6 +186,8 @@ function renderFarmData() {
     document.getElementById('area').value = state.farmData.area;
     document.getElementById('culture').value = state.farmData.culture;
     document.getElementById('planting-date').value = state.farmData.plantingDate;
+    document.getElementById('due-date').value = state.farmData.dueDate || '';
+    document.getElementById('grain-price').value = state.farmData.grainPrice || '';
 }
 
 // ==================== NUMBER SANITIZATION ====================
@@ -619,28 +631,40 @@ function renderFertilizerBody(insumo) {
     return `
         <div class="form-grid form-grid-4">
             <div class="form-group">
-                <label>N desejado (kg/ha) ${nComplete ? '✅' : ''}</label>
-                <input type="number" value="${insumo.targetN}" 
-                       oninput="updateInsumoField(${insumo.id}, 'targetN', sanitizeNumber(this.value))"
-                       placeholder="0">
+                <label>N desejado (kg/ha)</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="number" value="${insumo.targetN}" 
+                           oninput="updateInsumoField(${insumo.id}, 'targetN', sanitizeNumber(this.value))"
+                           placeholder="0" style="flex: 1;">
+                    ${nComplete ? '<span style="color: #34C759; font-size: 1.2em;">✅</span>' : ''}
+                </div>
             </div>
             <div class="form-group">
-                <label>P₂O₅ desejado (kg/ha) ${pComplete ? '✅' : ''}</label>
-                <input type="number" value="${insumo.targetP}" 
-                       oninput="updateInsumoField(${insumo.id}, 'targetP', sanitizeNumber(this.value))"
-                       placeholder="0">
+                <label>P₂O₅ desejado (kg/ha)</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="number" value="${insumo.targetP}" 
+                           oninput="updateInsumoField(${insumo.id}, 'targetP', sanitizeNumber(this.value))"
+                           placeholder="0" style="flex: 1;">
+                    ${pComplete ? '<span style="color: #34C759; font-size: 1.2em;">✅</span>' : ''}
+                </div>
             </div>
             <div class="form-group">
-                <label>K₂O desejado (kg/ha) ${kComplete ? '✅' : ''}</label>
-                <input type="number" value="${insumo.targetK}" 
-                       oninput="updateInsumoField(${insumo.id}, 'targetK', sanitizeNumber(this.value))"
-                       placeholder="0">
+                <label>K₂O desejado (kg/ha)</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="number" value="${insumo.targetK}" 
+                           oninput="updateInsumoField(${insumo.id}, 'targetK', sanitizeNumber(this.value))"
+                           placeholder="0" style="flex: 1;">
+                    ${kComplete ? '<span style="color: #34C759; font-size: 1.2em;">✅</span>' : ''}
+                </div>
             </div>
             <div class="form-group">
-                <label>S desejado (kg/ha) ${sComplete ? '✅' : ''}</label>
-                <input type="number" value="${insumo.targetS}" 
-                       oninput="updateInsumoField(${insumo.id}, 'targetS', sanitizeNumber(this.value))"
-                       placeholder="0">
+                <label>S desejado (kg/ha)</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="number" value="${insumo.targetS}" 
+                           oninput="updateInsumoField(${insumo.id}, 'targetS', sanitizeNumber(this.value))"
+                           placeholder="0" style="flex: 1;">
+                    ${sComplete ? '<span style="color: #34C759; font-size: 1.2em;">✅</span>' : ''}
+                </div>
             </div>
         </div>
 
@@ -1030,113 +1054,197 @@ function bindInsumoEvents() {
 function renderConsolidation() {
     const consolidationContent = document.getElementById('consolidation-content');
     
-    const grouped = {};
+    // Agrupa produtos por nome
+    const productMap = {};
     
     state.insumos.forEach(insumo => {
-        const typeInfo = getInsumoTypeInfo(insumo.type);
-        const category = typeInfo.category;
-        
-        if (!grouped[category]) {
-            grouped[category] = [];
-        }
-        
         insumo.products.forEach(product => {
             const name = product.name || 'Sem nome';
+            if (!name || name === 'Sem nome') return;
+            
             const area = parseFloat(product.area) || 0;
             const dose = parseFloat(product.dose) || 0;
-            const unit = product.unit || 'kg';
             
-            let total = 0;
-            let finalUnit = unit;
+            let quantity = 0;
+            let unit = '';
             
+            // Fertilizantes
             if (insumo.type === 'fertilizer') {
-                total = dose * area;
-                finalUnit = 'kg';
-            } else if (insumo.type === 'soy-seed' || insumo.type === 'corn-seed') {
+                quantity = dose * area; // kg
+                unit = 't'; // Converter para toneladas
+                quantity = quantity / 1000;
+            }
+            // Sementes
+            else if (insumo.type === 'soy-seed' || insumo.type === 'corn-seed') {
                 const population = parseFloat(product.population) || 0;
                 const germination = parseFloat(product.germination) || 90;
                 const bagSize = parseFloat(product.bagSize) || 1;
                 const mode = product.mode || 'plantas';
                 
-                if (population > 0 && bagSize > 0) {
+                if (population > 0 && bagSize > 0 && area > 0) {
                     const seedsPerHa = mode === 'plantas' ? population / (germination / 100) : population;
                     const haPerBag = bagSize / seedsPerHa;
-                    total = area / haPerBag;
-                    finalUnit = 'unid';
+                    quantity = area / haPerBag;
+                    
+                    // Determina unidade baseada no tamanho da embalagem
+                    if (bagSize >= 1000000) {
+                        unit = 'bag';
+                    } else {
+                        unit = 'sc';
+                    }
                 }
-            } else {
-                total = dose * area;
-                if (unit === 'g') {
-                    total = total / 1000;
-                    finalUnit = 'kg';
-                } else if (unit === 'ml') {
-                    total = total / 1000;
-                    finalUnit = 'L';
+            }
+            // Defensivos, Inoculantes, Tratamentos
+            else {
+                const productUnit = product.unit || 'L';
+                quantity = dose * area;
+                
+                // Conversões
+                if (productUnit === 'ml') {
+                    quantity = quantity / 1000;
+                    unit = 'L';
+                } else if (productUnit === 'g') {
+                    quantity = quantity / 1000;
+                    unit = 'kg';
+                } else {
+                    unit = productUnit;
                 }
             }
             
-            if (total > 0) {
-                const existing = grouped[category].find(item => 
-                    item.name === name && item.unit === finalUnit
-                );
+            if (quantity > 0) {
+                const key = `${name}|${unit}`;
                 
-                if (existing) {
-                    existing.total += total;
+                if (productMap[key]) {
+                    productMap[key].quantity += quantity;
                 } else {
-                    grouped[category].push({
+                    productMap[key] = {
                         name,
-                        total,
-                        unit: finalUnit,
-                        unitPrice: state.consolidation.unitPrices[name] || ''
-                    });
+                        quantity,
+                        unit,
+                        unitPrice: state.consolidation.unitPrices[key] || ''
+                    };
                 }
             }
         });
     });
     
-    let html = '';
+    const products = Object.values(productMap);
     
-    Object.keys(grouped).sort().forEach(category => {
-        const items = grouped[category];
-        if (items.length === 0) return;
+    if (products.length === 0) {
+        consolidationContent.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📦</div>
+                <div class="empty-state-text">Adicione insumos no planejamento para ver a consolidação</div>
+            </div>
+        `;
+        return;
+    }
+    
+    // Calcula totais
+    let grandTotal = 0;
+    products.forEach(p => {
+        const unitPrice = parseFloat(p.unitPrice) || 0;
+        const total = p.quantity * unitPrice;
+        grandTotal += total;
+    });
+    
+    const area = parseFloat(state.farmData.area) || 0;
+    const grainPrice = parseFloat(state.farmData.grainPrice) || 0;
+    let sacasPerHa = 0;
+    
+    if (area > 0 && grainPrice > 0) {
+        sacasPerHa = grandTotal / area / grainPrice;
+    }
+    
+    // Renderiza tabela
+    let html = `
+        <div class="consolidation-header-info">
+            <div class="info-grid">
+                <div class="info-item"><strong>Produtor:</strong> ${state.farmData.producer || '-'}</div>
+                <div class="info-item"><strong>Fazenda:</strong> ${state.farmData.farm || '-'}</div>
+                <div class="info-item"><strong>Área:</strong> ${state.farmData.area || '-'} ha</div>
+                <div class="info-item"><strong>Cultura:</strong> ${state.farmData.culture?.toUpperCase() || '-'}</div>
+                <div class="info-item"><strong>Data Plantio:</strong> ${state.farmData.plantingDate ? new Date(state.farmData.plantingDate + 'T00:00:00').toLocaleDateString('pt-BR') : '-'}</div>
+                <div class="info-item"><strong>Vencimento:</strong> ${state.farmData.dueDate ? new Date(state.farmData.dueDate + 'T00:00:00').toLocaleDateString('pt-BR') : '-'}</div>
+                <div class="info-item"><strong>Valor Grão:</strong> R$ ${state.farmData.grainPrice || '0,00'}/saca</div>
+            </div>
+        </div>
+        
+        <div class="consolidation-table-wrapper">
+            <table class="consolidation-table">
+                <thead>
+                    <tr>
+                        <th style="text-align: left; width: 40%;">Produto</th>
+                        <th style="text-align: right; width: 20%;">Quantidade</th>
+                        <th style="text-align: right; width: 20%;">Valor Unitário</th>
+                        <th style="text-align: right; width: 20%;">Valor Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    products.forEach(product => {
+        const unitPrice = parseFloat(product.unitPrice) || 0;
+        const totalValue = product.quantity * unitPrice;
+        const key = `${product.name}|${product.unit}`;
         
         html += `
-            <div class="consolidation-category">
-                <h3 class="category-title">${category}</h3>
-                <div class="consolidation-table">
-                    ${items.map(item => {
-                        const unitPrice = parseFloat(item.unitPrice) || 0;
-                        const totalPrice = unitPrice * item.total;
-                        
-                        return `
-                            <div class="consolidation-row">
-                                <div class="row-name">${item.name}</div>
-                                <div class="row-quantity">${item.total.toFixed(2)} ${item.unit}</div>
-                                <div class="row-price">
-                                    <input type="number" 
-                                           value="${item.unitPrice}" 
-                                           placeholder="R$ /${item.unit}"
-                                           oninput="updateUnitPrice('${item.name}', this.value)"
-                                           class="price-input">
-                                    ${unitPrice > 0 ? `<span class="total-price">R$ ${totalPrice.toFixed(2)}</span>` : ''}
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            </div>
+            <tr>
+                <td>${product.name}</td>
+                <td style="text-align: right;">
+                    <input type="number" 
+                           class="quantity-input"
+                           value="${product.quantity.toFixed(3)}" 
+                           oninput="updateConsolidationQuantity('${key}', this.value)"
+                           step="0.001"
+                           style="width: 80px; text-align: right; margin-right: 5px;">
+                    ${product.unit}
+                </td>
+                <td style="text-align: right;">
+                    <input type="number" 
+                           class="price-input-table"
+                           value="${product.unitPrice}" 
+                           placeholder="0.00"
+                           oninput="updateConsolidationUnitPrice('${key}', this.value)"
+                           step="0.01"
+                           style="width: 100px; text-align: right;">
+                </td>
+                <td style="text-align: right; font-weight: 500;">
+                    ${unitPrice > 0 ? 'R$ ' + totalValue.toFixed(2) : '-'}
+                </td>
+            </tr>
         `;
     });
     
-    if (html === '') {
-        html = '<div class="empty-state">Nenhum insumo cadastrado ainda.</div>';
-    }
+    html += `
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td colspan="3" style="text-align: right; font-weight: 600;">TOTAL:</td>
+                        <td style="text-align: right; font-weight: 600; font-size: 1.1em;">R$ ${grandTotal.toFixed(2)}</td>
+                    </tr>
+                    ${area > 0 && grainPrice > 0 ? `
+                        <tr class="summary-row">
+                            <td colspan="3" style="text-align: right; font-weight: 600;">SACAS/HA:</td>
+                            <td style="text-align: right; font-weight: 600; color: var(--primary);">${sacasPerHa.toFixed(2)} sc/ha</td>
+                        </tr>
+                    ` : ''}
+                </tfoot>
+            </table>
+        </div>
+    `;
     
     consolidationContent.innerHTML = html;
 }
 
-function updateUnitPrice(productName, value) {
-    state.consolidation.unitPrices[productName] = value;
+function updateConsolidationUnitPrice(key, value) {
+    state.consolidation.unitPrices[key] = value;
+    saveState();
+    renderConsolidation();
+}
+
+function updateConsolidationQuantity(key, value) {
+    state.consolidation.quantities[key] = value;
     saveState();
     renderConsolidation();
 }
