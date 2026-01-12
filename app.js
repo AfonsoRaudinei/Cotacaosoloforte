@@ -610,28 +610,34 @@ function renderFertilizerBody(insumo) {
     const calcBase = insumo.calcBase || 'P';
     const area = parseFloat(state.farmData.area) || 0;
     
+    // Verifica se cada nutriente atingiu a meta
+    const nComplete = parseFloat(summary.appliedN) >= parseFloat(summary.targetN);
+    const pComplete = parseFloat(summary.appliedP) >= parseFloat(summary.targetP);
+    const kComplete = parseFloat(summary.appliedK) >= parseFloat(summary.targetK);
+    const sComplete = parseFloat(summary.appliedS) >= parseFloat(summary.targetS);
+    
     return `
         <div class="form-grid form-grid-4">
             <div class="form-group">
-                <label>N desejado (kg/ha)</label>
+                <label>N desejado (kg/ha) ${nComplete ? '✅' : ''}</label>
                 <input type="number" value="${insumo.targetN}" 
                        oninput="updateInsumoField(${insumo.id}, 'targetN', sanitizeNumber(this.value))"
                        placeholder="0">
             </div>
             <div class="form-group">
-                <label>P₂O₅ desejado (kg/ha)</label>
+                <label>P₂O₅ desejado (kg/ha) ${pComplete ? '✅' : ''}</label>
                 <input type="number" value="${insumo.targetP}" 
                        oninput="updateInsumoField(${insumo.id}, 'targetP', sanitizeNumber(this.value))"
                        placeholder="0">
             </div>
             <div class="form-group">
-                <label>K₂O desejado (kg/ha)</label>
+                <label>K₂O desejado (kg/ha) ${kComplete ? '✅' : ''}</label>
                 <input type="number" value="${insumo.targetK}" 
                        oninput="updateInsumoField(${insumo.id}, 'targetK', sanitizeNumber(this.value))"
                        placeholder="0">
             </div>
             <div class="form-group">
-                <label>S desejado (kg/ha)</label>
+                <label>S desejado (kg/ha) ${sComplete ? '✅' : ''}</label>
                 <input type="number" value="${insumo.targetS}" 
                        oninput="updateInsumoField(${insumo.id}, 'targetS', sanitizeNumber(this.value))"
                        placeholder="0">
@@ -652,31 +658,6 @@ function renderFertilizerBody(insumo) {
         </div>
         <button class="btn-add-inline" onclick="addProduct(${insumo.id})">+ Fertilizante</button>
         ${renderSumAreaWarning(insumo, area)}
-
-        ${insumo.products.length > 0 ? `
-            <div class="npk-summary">
-                <div class="npk-item">
-                    <div class="npk-label">N</div>
-                    <div class="npk-value ${parseFloat(summary.missingN) > 0 ? 'danger' : 'success'}">${summary.appliedN}/${summary.targetN}</div>
-                    ${parseFloat(summary.missingN) > 0 ? `<div class="npk-missing">-${summary.missingN}</div>` : ''}
-                </div>
-                <div class="npk-item">
-                    <div class="npk-label">P₂O₅</div>
-                    <div class="npk-value ${parseFloat(summary.missingP) > 0 ? 'danger' : 'success'}">${summary.appliedP}/${summary.targetP}</div>
-                    ${parseFloat(summary.missingP) > 0 ? `<div class="npk-missing">-${summary.missingP}</div>` : ''}
-                </div>
-                <div class="npk-item">
-                    <div class="npk-label">K₂O</div>
-                    <div class="npk-value ${parseFloat(summary.missingK) > 0 ? 'danger' : 'success'}">${summary.appliedK}/${summary.targetK}</div>
-                    ${parseFloat(summary.missingK) > 0 ? `<div class="npk-missing">-${summary.missingK}</div>` : ''}
-                </div>
-                <div class="npk-item">
-                    <div class="npk-label">S</div>
-                    <div class="npk-value ${parseFloat(summary.missingS) > 0 ? 'danger' : 'success'}">${summary.appliedS}/${summary.targetS}</div>
-                    ${parseFloat(summary.missingS) > 0 ? `<div class="npk-missing">-${summary.missingS}</div>` : ''}
-                </div>
-            </div>
-        ` : ''}
     `;
 }
 
