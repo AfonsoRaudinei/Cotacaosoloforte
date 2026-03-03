@@ -213,6 +213,8 @@ function switchTab(tabId) {
 
     if (tabId === 'dados') {
         renderPhenologyDataTab();
+    }
+    if (tabId === 'produtos') {
         renderCatalog();
         renderCatalogDatalist();
     }
@@ -234,8 +236,6 @@ function renderFarmData() {
     document.getElementById('grain-price').value = state.farmData.grainPrice || '';
     renderConsolidationFarmData();
     renderPhenologyDataTab();
-    renderCatalog();
-    renderCatalogDatalist();
     renderWallet();
 }
 
@@ -282,11 +282,33 @@ function buildStageImageDataUri(stage) {
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
+function normalizeStageCodeForAsset(stageCode) {
+    if (!stageCode) return '';
+    return String(stageCode).trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function getStageAssetPath(stageCode) {
+    const normalized = normalizeStageCodeForAsset(stageCode);
+    if (!normalized) return null;
+    // User will add real images to GitHub; keep a stable convention and fallback to SVG if missing.
+    if (state?.farmData?.culture === 'soja') {
+        return `assets/phenology/soja_${normalized}.png`;
+    }
+    return null;
+}
+
 function renderStageImage(stageCode, className = 'stage-thumb-image') {
     const stage = getPhenologyStage(stageCode);
-    const src = buildStageImageDataUri(stage);
-    const alt = stage ? `${stage.code} - ${stage.fullName}` : 'Estadio fenologico';
-    return `<img src="${src}" alt="${alt}" class="${className}">`;
+    const stageFallback = stage || { code: stageCode || '?', fullName: stageCode || '?', phase: 'vegetative' };
+    const fallbackSrc = buildStageImageDataUri(stageFallback).replace(/'/g, '%27');
+    const alt = stage ? `${stage.code} - ${stage.fullName}` : `Estadio ${stageCode || ''}`.trim();
+    const assetPath = getStageAssetPath(stageCode);
+
+    if (assetPath) {
+        return `<img src="${assetPath}" alt="${alt}" class="${className}" onerror="this.onerror=null; this.src='${fallbackSrc}'">`;
+    }
+
+    return `<img src="${fallbackSrc}" alt="${alt}" class="${className}">`;
 }
 
 function renderPhenologyDetailSections(stage) {
@@ -408,6 +430,7 @@ function renderCatalog() {
                        oninput="updateCatalogSearch(this.value)">
             </div>
             <div class="catalog-actions">
+                <button class="btn btn-secondary btn-sm" onclick="openCatalogImport()">Importar</button>
                 <button class="btn btn-primary btn-sm" onclick="openCatalogEditor()">+ Produto</button>
             </div>
         </div>
@@ -451,6 +474,159 @@ function updateCatalogSearch(value) {
     state.catalog.search = value;
     saveState();
     renderCatalog();
+}
+
+function normalizeCatalogCategory(value) {
+    const raw = String(value || '').trim().toLowerCase();
+    if (!raw) return 'outro';
+
+    if (raw.includes('fert')) return 'fertilizante';
+    if (raw.includes('semen')) return 'semente';
+    if (raw.includes('def')) return 'defensivo';
+    if (raw.includes('inoc')) return 'inoculante';
+    if (raw.includes('trat')) return 'tratamento';
+    return 'outro';
+}
+
+function normalizeCatalogUnit(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+
+    const lower = raw.toLowerCase();
+    if (lower === 'l') return 'L';
+    if (lower === 'ml') return 'ml';
+    if (lower === 'kg') return 'kg';
+    if (lower === 'g') return 'g';
+    if (lower === 't') return 't';
+    if (lower === 'sc') return 'sc';
+    if (lower === 'bag' || lower === 'saco' || lower === 'saca') return 'bag';
+    return raw;
+}
+
+function splitDelimitedLine(line, delimiter) {
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i += 1) {
+        const char = line[i];
+        const next = line[i + 1];
+
+        if (char === '"') {
+            if (inQuotes && next === '"') {
+                current += '"';
+                i += 1;
+            } else {
+                inQuotes = !inQuotes;
+            }
+            continue;
+        }
+
+        if (char === delimiter && !inQuotes) {
+            values.push(current.trim());
+            current = '';
+            continue;
+        }
+
+        current += char;
+    }
+
+    values.push(current.trim());
+    return values;
+}
+
+function parseCatalogImportText(text) {
+    const lines = String(text || '')
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+
+    if (!lines.length) return [];
+
+    const delimiter = lines.some(line => line.includes('\t'))
+        ? '\t'
+        : (lines.some(line => line.includes(';')) ? ';' : ',');
+
+    const rows = lines.map(line => splitDelimitedLine(line, delimiter));
+    const firstRow = rows[0].map(cell => cell.toLowerCase());
+    const hasHeader = firstRow.some(cell =>
+        cell.includes('categoria') ||
+        cell.includes('produto') ||
+        cell.includes('nome') ||
+        cell.includes('unid')
+    );
+
+    const dataRows = hasHeader ? rows.slice(1) : rows;
+    const headerMap = hasHeader ? {
+        category: firstRow.findIndex(cell => cell.includes('categoria') || cell.includes('grupo') || cell.includes('tipo')),
+        name: firstRow.findIndex(cell => cell.includes('produto') || cell.includes('nome')),
+        unit: firstRow.findIndex(cell => cell.includes('unid'))
+    } : { category: 0, name: 1, unit: 2 };
+
+    return dataRows
+        .map(row => {
+            const category = normalizeCatalogCategory(row[headerMap.category] || '');
+            const name = normalizeCatalogName(row[headerMap.name] || row[0] || '');
+            const unit = normalizeCatalogUnit(row[headerMap.unit] || '');
+
+            if (!name) return null;
+            return { category, name, unit };
+        })
+        .filter(Boolean);
+}
+
+function openCatalogImport() {
+    sidecarTitle.textContent = 'Importar Produtos';
+    sidecarBody.innerHTML = `
+        <div class="settings-panel">
+            <div class="setting-group">
+                <label>Colar planilha</label>
+                <textarea id="catalog-import-text" rows="14" placeholder="Cole aqui linhas copiadas do Excel ou CSV.\n\nFormatos aceitos:\nCategoria[TAB]Nome[TAB]Unidade\nou\nNome[TAB]Categoria[TAB]Unidade"></textarea>
+            </div>
+            <div class="setting-group" style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" onclick="importCatalogFromText()">Importar</button>
+                <button class="btn btn-secondary" onclick="closeSidecarPanel()">Cancelar</button>
+            </div>
+        </div>
+    `;
+
+    openSidecarPanel();
+}
+
+function importCatalogFromText() {
+    const text = document.getElementById('catalog-import-text')?.value || '';
+    const imported = parseCatalogImportText(text);
+
+    if (!imported.length) {
+        alert('Nenhum produto valido encontrado para importar.');
+        return;
+    }
+
+    ensureCatalogIds();
+    const existing = getCatalogProducts();
+    const seen = new Set(existing.map(p => `${(p.category || '').toLowerCase()}::${(p.name || '').toLowerCase()}`));
+
+    imported.forEach(item => {
+        const key = `${item.category.toLowerCase()}::${item.name.toLowerCase()}`;
+        if (seen.has(key)) return;
+
+        const id = (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function')
+            ? globalThis.crypto.randomUUID()
+            : String(Date.now() + Math.random());
+
+        state.catalog.products.push({
+            id,
+            category: item.category,
+            name: item.name,
+            unit: item.unit
+        });
+        seen.add(key);
+    });
+
+    saveState();
+    closeSidecarPanel();
+    renderCatalog();
+    renderCatalogDatalist();
 }
 
 function openCatalogEditor(productId = null) {
@@ -1406,12 +1582,40 @@ function renderInsumos() {
     restoreInsumoFocus(focusSnapshot);
 }
 
+function shouldShowInsumoAvatar(insumoType) {
+    return ['fertilizer', 'soy-seed', 'corn-seed', 'defensive'].includes(insumoType);
+}
+
+function getInsumoAvatarFallbackLabel(insumo) {
+    if (!insumo) return 'IMG';
+    if (insumo.type === 'defensive') return insumo.stage || 'V2';
+    if (insumo.type === 'soy-seed' || insumo.type === 'corn-seed') return 'VE';
+    return 'IMG';
+}
+
+function renderInsumoAvatar(insumo) {
+    if (!shouldShowInsumoAvatar(insumo.type)) return '';
+
+    const stageCode = getInsumoStageCode(insumo);
+    const fallbackLabel = getInsumoAvatarFallbackLabel(insumo);
+
+    return `
+        <div class="insumo-avatar" aria-hidden="true">
+            <div class="item-image-circle">
+                ${stageCode ? renderStageImage(stageCode) : `<span class="item-image-fallback">${fallbackLabel}</span>`}
+            </div>
+        </div>
+    `;
+}
+
 function renderInsumoCard(insumo) {
     const typeInfo = getInsumoTypeInfo(insumo.type);
     const expandedClass = insumo.expanded ? 'expanded' : '';
+    const hasAvatarClass = shouldShowInsumoAvatar(insumo.type) ? 'has-avatar' : '';
 
     return `
-        <div class="insumo-card ${expandedClass}" data-id="${insumo.id}">
+        <div class="insumo-card ${expandedClass} ${hasAvatarClass}" data-id="${insumo.id}">
+            ${renderInsumoAvatar(insumo)}
             <div class="insumo-header" onclick="toggleInsumo(${insumo.id})">
                 <div class="insumo-title">
                     <span>${typeInfo.icon}</span>
@@ -1542,7 +1746,6 @@ function renderFertilizerProduct(insumoId, product, index, totalArea) {
 
     return `
         <div class="fertilizer-row">
-            ${renderItemImageSlot(null, 'IMG')}
             <div class="fields">
                 <div class="form-group">
                     <label>Tipo</label>
@@ -1684,7 +1887,6 @@ function renderSeedBody(insumo) {
 
                 return `
                     <div class="seed-row">
-                        ${renderItemImageSlot(getInsumoStageCode(insumo), 'VE')}
                         <div class="seed-row-content">
                             <div class="seed-row-header">
                                 <input type="text" value="${product.name}" 
@@ -1799,7 +2001,6 @@ function renderDefensiveBody(insumo) {
 
                 return `
                     <div class="product-row">
-                        ${renderItemImageSlot(getInsumoStageCode(insumo), insumo.stage || 'V2')}
                         <div class="product-fields">
                             <div class="field-group" style="flex: 2;">
                                 <label>Produto</label>
@@ -1956,18 +2157,15 @@ function renderInsumoStageReference(insumo) {
     }
 
     return `
-        <div class="stage-reference-card ${stage.phase}">
-            <div class="stage-reference-head">
-                <div class="stage-reference-image">
-                    ${renderStageImage(stage.code, 'stage-reference-image-tag')}
-                </div>
-                <div class="stage-reference-title">
-                    <h3>${stage.code} - ${stage.fullName}</h3>
-                    <p>${stage.description} | Dia ${stage.day}</p>
-                </div>
+        <details class="stage-note ${stage.phase}">
+            <summary>
+                <span class="stage-note-code">${stage.code}</span>
+                <span class="stage-note-meta">${stage.fullName} | Dia ${stage.day}</span>
+            </summary>
+            <div class="stage-note-body">
+                ${renderPhenologyDetailSections(stage)}
             </div>
-            ${renderPhenologyDetailSections(stage)}
-        </div>
+        </details>
     `;
 }
 
@@ -2214,7 +2412,8 @@ function renderConsolidation() {
                            class="price-input-table"
                            value="${product.unitPrice}" 
                            placeholder="0.00"
-                           oninput="updateConsolidationUnitPrice('${key}', this.value)"
+                           oninput="updateConsolidationUnitPriceDraft('${key}', this.value)"
+                           onchange="updateConsolidationUnitPrice('${key}', this.value)"
                            step="0.01"
                            style="width: 100px; text-align: right;">
                 </td>
@@ -2244,6 +2443,11 @@ function renderConsolidation() {
     `;
     
     consolidationContent.innerHTML = html;
+}
+
+function updateConsolidationUnitPriceDraft(key, value) {
+    state.consolidation.unitPrices[key] = value;
+    saveState();
 }
 
 function updateConsolidationUnitPrice(key, value) {

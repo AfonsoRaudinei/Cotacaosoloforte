@@ -46,7 +46,7 @@ body {
 }
 
 .header-content {
-    max-width: 900px;
+    max-width: 100%;
     margin: 0 auto;
     display: flex;
     align-items: center;
@@ -134,7 +134,7 @@ body {
 
 /* ==================== MAIN CONTENT ==================== */
 .main {
-    max-width: 900px;
+    max-width: 100%;
     margin: 0 auto;
     padding: 20px;
     padding-bottom: 100px;
@@ -223,6 +223,8 @@ input, select {
     border: 1px solid var(--border);
     border-radius: 6px;
     font-size: 0.85em;
+    line-height: 1.2;
+    min-height: 34px;
     font-family: inherit;
     background: white;
     color: var(--text-primary);
@@ -374,6 +376,36 @@ select {
     border-radius: 10px;
     overflow: hidden;
     margin-bottom: 10px;
+}
+
+.insumo-card.has-avatar {
+    position: relative;
+    overflow: visible;
+}
+
+.insumo-card.has-avatar .insumo-header,
+.insumo-card.has-avatar .insumo-body {
+    padding-left: 76px;
+}
+
+.insumo-avatar {
+    position: absolute;
+    left: -28px;
+    top: 10px;
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.insumo-avatar .item-image-circle {
+    width: 64px;
+    height: 64px;
+    border-width: 2px;
+    box-shadow: 0 6px 16px rgba(27, 39, 51, 0.10);
 }
 
 .insumo-header {
@@ -1216,6 +1248,8 @@ select {
 .seed-field select {
     padding: 6px 8px;
     font-size: 0.8em;
+    line-height: 1.2;
+    min-height: 34px;
 }
 
 .seed-field.result {
@@ -1317,6 +1351,8 @@ select {
 .field-group select {
     padding: 5px 6px;
     font-size: 0.8em;
+    line-height: 1.2;
+    min-height: 34px;
 }
 
 .field-group.result {
@@ -1431,6 +1467,78 @@ select {
 
 .stage-reference-card {
     margin-top: 14px;
+}
+
+/* ==================== STAGE NOTE (DISCRETE) ==================== */
+.stage-note {
+    margin-top: 12px;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.7);
+    overflow: hidden;
+}
+
+.stage-note.vegetative { border-left: 3px solid rgba(47, 143, 70, 0.35); }
+.stage-note.flowering { border-left: 3px solid rgba(216, 132, 17, 0.35); }
+.stage-note.podding { border-left: 3px solid rgba(188, 75, 39, 0.35); }
+.stage-note.grain { border-left: 3px solid rgba(103, 64, 181, 0.35); }
+.stage-note.maturity { border-left: 3px solid rgba(42, 111, 180, 0.35); }
+
+.stage-note summary {
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+    padding: 10px 12px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    color: var(--text-secondary);
+    font-size: 0.85em;
+}
+
+.stage-note summary::-webkit-details-marker {
+    display: none;
+}
+
+.stage-note summary::after {
+    content: "▸";
+    margin-left: auto;
+    color: #7F8C99;
+    transition: transform 0.15s ease;
+    transform: rotate(0deg);
+}
+
+.stage-note[open] summary::after {
+    transform: rotate(90deg);
+}
+
+.stage-note .stage-note-code {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #32465C;
+}
+
+.stage-note .stage-note-meta {
+    color: var(--text-secondary);
+}
+
+.stage-note-body {
+    padding: 0 12px 12px 12px;
+}
+
+.stage-note .stage-detail-sections {
+    gap: 10px;
+}
+
+.stage-note .stage-detail-section h4 {
+    font-size: 0.85em;
+    margin-bottom: 6px;
+    color: #32465C;
+}
+
+.stage-note .stage-detail-section li {
+    font-size: 0.9em;
+    color: #55616F;
 }
 
 /* ==================== DIVIDER ==================== */
@@ -1792,6 +1900,23 @@ select {
     .tab {
         padding: 6px 10px;
         font-size: 0.75em;
+    }
+
+    .insumo-card.has-avatar .insumo-header,
+    .insumo-card.has-avatar .insumo-body {
+        padding-left: 74px;
+    }
+
+    .insumo-avatar {
+        left: 10px;
+        top: 8px;
+        width: 62px;
+        height: 62px;
+    }
+
+    .insumo-avatar .item-image-circle {
+        width: 54px;
+        height: 54px;
     }
 
     .btn-settings {
