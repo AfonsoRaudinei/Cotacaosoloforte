@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soloforte Cotação</title>
+    <link rel="icon" href="assets/soloforte-icon.svg" type="image/svg+xml">
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <img class="logo-icon" src="assets/soloforte-icon.svg" alt="Soloforte Cotação">
+                <div class="logo-text">Soloforte <span>Cotação</span></div>
+            </div>
+            <button class="btn-settings" id="btn-settings" title="Configurações">⚙️</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="app-shell">
+            <aside class="side-menu">
+                <div class="side-menu-group">
+                    <button class="tab side-tab active" data-tab="planejamento">Planejamento</button>
+                    <button class="tab side-tab" data-tab="consolidacao">Consolidação</button>
+                    <button class="tab side-tab" data-tab="timeline">Ordem Aplicação</button>
+                    <button class="tab side-tab" data-tab="carteira">Carteira</button>
+                    <button class="tab side-tab" data-tab="produtos">Produtos</button>
+                    <button class="tab side-tab" data-tab="dados">Dados</button>
+                </div>
+            </aside>
+
+            <section class="content-area">
+                <!-- Tab: Dados -->
+                <div id="dados" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Estádios Fenológicos</span>
+                            <span class="card-icon">🌿</span>
+                        </div>
+                        <div id="phenology-data-content"></div>
+                    </div>
+                </div>
+
+                <!-- Tab: Produtos -->
+                <div id="produtos" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Produtos</span>
+                            <span class="card-icon">🧾</span>
+                        </div>
+                        <div id="catalog-content"></div>
+                    </div>
+                </div>
+
+                <!-- Tab: Planejamento -->
+                <div id="planejamento" class="tab-content active">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Dados da Propriedade</span>
+                            <span class="card-icon">🏡</span>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Produtor</label>
+                                <input type="text" id="producer" placeholder="Nome do produtor">
+                            </div>
+                            <div class="form-group">
+                                <label>Fazenda</label>
+                                <input type="text" id="farm" placeholder="Nome da fazenda">
+                            </div>
+                            <div class="form-group">
+                                <label>Área (ha)</label>
+                                <input type="number" id="area" placeholder="0" min="0" max="9999999">
+                            </div>
+                            <div class="form-group">
+                                <label>Cultura</label>
+                                <select id="culture">
+                                    <option value="soja">Soja</option>
+                                    <option value="milho">Milho</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Data de Vencimento</label>
+                                <input type="date" id="due-date">
+                            </div>
+                            <div class="form-group">
+                                <label>Valor do Grão (R$/saca)</label>
+                                <input type="number" id="grain-price" placeholder="0.00" step="0.01" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="insumos-container"></div>
+
+                    <div class="planning-actions">
+                        <div class="add-insumo-container">
+                            <button class="btn btn-success" id="add-insumo-btn">
+                                <span>+</span> Adicionar Insumo
+                            </button>
+                            <div class="add-insumo-dropdown" id="add-insumo-dropdown">
+                                <div class="dropdown-item" data-type="fertilizer">Fertilizante</div>
+                                <div class="dropdown-item" data-type="soy-seed">Semente de Soja</div>
+                                <div class="dropdown-item" data-type="corn-seed">Semente de Milho</div>
+                                <div class="dropdown-item" data-type="defensive">Defensivo</div>
+                                <div class="dropdown-item" data-type="inoculant">Inoculante</div>
+                                <div class="dropdown-item" data-type="treatment">Tratamento de Sementes</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-danger-soft" onclick="clearPlanning()">Limpar planejamento</button>
+                    </div>
+                </div>
+
+                <!-- Tab: Consolidação -->
+                <div id="consolidacao" class="tab-content">
+                    <div id="consolidation-farm-data"></div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Produtos Consolidados</span>
+                            <span class="card-icon">📦</span>
+                        </div>
+                        <div id="consolidation-content">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📦</div>
+                                <div class="empty-state-text">Adicione insumos no planejamento para ver a consolidação</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Carteira -->
+                <div id="carteira" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Carteira</span>
+                            <span class="card-icon">💼</span>
+                        </div>
+                        <div id="wallet-content"></div>
+                    </div>
+                </div>
+
+                <!-- Tab: Timeline -->
+                <div id="timeline" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Cronograma de Aplicações</span>
+                            <span class="card-icon">📅</span>
+                        </div>
+                        <div class="timeline-header">
+                            <div class="form-group timeline-date-input">
+                                <label>Data de Plantio</label>
+                                <input type="date" id="planting-date">
+                            </div>
+                            <button class="btn btn-primary" id="generate-timeline-btn">📋 Gerar Ordem</button>
+                        </div>
+                        <div id="timeline-content">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📋</div>
+                                <div class="empty-state-text">Defina a data de plantio e clique em "Gerar Ordem"</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- FAB Buttons -->
+    <div class="fab-container">
+        <button class="fab fab-excel" id="export-excel-btn" title="Exportar Excel">📊</button>
+        <button class="fab fab-pdf" id="export-pdf-btn" title="Exportar PDF">📄</button>
+    </div>
+
+    <!-- Sidecar -->
+    <div class="sidecar-overlay" id="sidecar-overlay"></div>
+    <div class="sidecar" id="sidecar">
+        <div class="sidecar-header">
+            <span class="sidecar-title" id="sidecar-title">Configurações</span>
+            <button class="btn-icon" id="close-sidecar">✕</button>
+        </div>
+        <div class="sidecar-body" id="sidecar-body"></div>
+    </div>
+
+    <!-- External JavaScript -->
+    <script src="app.js"></script>
+
+    <datalist id="catalog-products"></datalist>
+</body>
+</html>
